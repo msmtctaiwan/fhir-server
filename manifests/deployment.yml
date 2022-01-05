@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "aksaks5-0b6e"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "aksaks5-0b6e"
+  template:
+    metadata:
+      labels:
+        app: "aksaks5-0b6e"
+    spec:
+      containers:
+        - name: "aksaks5-0b6e"
+          image: "458399957d5d4382ad34cd48c65e4ffa.azurecr.io/aksaks5"
+          ports:
+          - containerPort: 8080
