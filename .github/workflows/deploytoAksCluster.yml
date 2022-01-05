@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: 458399957d5d4382ad34cd48c65e4ffa.azurecr.io
+        username: ${{ secrets.acr_458399957d5d4382ad34cd48c65e4ffa_username }}
+        password: ${{ secrets.acr_458399957d5d4382ad34cd48c65e4ffa_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/build/docker" -f  "build/docker/Dockerfile" -t 458399957d5d4382ad34cd48c65e4ffa.azurecr.io/aksaks5:${{ github.sha }} --label dockerfile-path=build/docker/Dockerfile
+        docker push 458399957d5d4382ad34cd48c65e4ffa.azurecr.io/aksaks5:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_aksaks5_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep azureoperator-system | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace azureoperator-system`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: azureoperator-system
+        container-registry-url: 458399957d5d4382ad34cd48c65e4ffa.azurecr.io
+        container-registry-username: ${{ secrets.acr_458399957d5d4382ad34cd48c65e4ffa_username }}
+        container-registry-password: ${{ secrets.acr_458399957d5d4382ad34cd48c65e4ffa_password }}
+        secret-name: aksaks5dockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: azureoperator-system
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          458399957d5d4382ad34cd48c65e4ffa.azurecr.io/aksaks5:${{ github.sha }}
+        imagepullsecrets: |
+          aksaks5dockerauth
