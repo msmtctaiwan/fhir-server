@@ -108,7 +108,7 @@
         },
         "solutionType": {
             "type": "string",
-            "defaultValue": "FhirServerCosmosDB",
+            "defaultValue": "FhirServerSqlServer",
             "allowedValues": [
                 "FhirServerCosmosDB",
                 "FhirServerSqlServer"
@@ -146,7 +146,7 @@
         },
         "sqlAdminPassword": {
             "type": "securestring",
-            "defaultValue": "",
+            "defaultValue": "Test123",
             "metadata": {
                 "description": "The password for the sql admin user if using SQL server."
             }
